@@ -47,6 +47,30 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        east: {
+          DEFAULT: "hsl(var(--east))",
+          foreground: "hsl(var(--east-foreground))",
+          light: "hsl(var(--east-light))",
+        },
+        west: {
+          DEFAULT: "hsl(var(--west))",
+          foreground: "hsl(var(--west-foreground))",
+          light: "hsl(var(--west-light))",
+        },
+        south: {
+          DEFAULT: "hsl(var(--south))",
+          foreground: "hsl(var(--south-foreground))",
+          light: "hsl(var(--south-light))",
+        },
+        north: {
+          DEFAULT: "hsl(var(--north))",
+          foreground: "hsl(var(--north-foreground))",
+          light: "hsl(var(--north-light))",
+        },
+        compass: {
+          center: "hsl(var(--compass-center))",
+          border: "hsl(var(--compass-center-border))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
