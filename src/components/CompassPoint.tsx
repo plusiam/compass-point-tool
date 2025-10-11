@@ -219,31 +219,11 @@ ${directions.north || "(작성되지 않음)"}
         duration: 3000,
       });
 
-      // 모든 textarea의 높이를 내용에 맞게 조절
-      const textareas = captureRef.current.querySelectorAll('textarea');
-      const inputs = captureRef.current.querySelectorAll('input');
-      const originalStyles: Array<{ 
-        element: HTMLElement; 
-        overflow: string; 
-        height: string;
-      }> = [];
-      
-      // Textarea 높이 조절
-      textareas.forEach((textarea) => {
-        const ta = textarea as HTMLTextAreaElement;
-        originalStyles.push({
-          element: ta,
-          overflow: ta.style.overflow,
-          height: ta.style.height,
-        });
-        
-        ta.style.overflow = 'hidden';
-        ta.style.height = 'auto';
-        ta.style.height = ta.scrollHeight + 'px';
-      });
+      // 페이지 맨 위로 스크롤
+      window.scrollTo(0, 0);
 
       // 약간의 지연 후 캡처 (렌더링 완료 대기)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // html2canvas로 캡처
       const canvas = await html2canvas(captureRef.current, {
@@ -251,24 +231,72 @@ ${directions.north || "(작성되지 않음)"}
         scale: 2,
         logging: false,
         useCORS: true,
+        allowTaint: true,
         windowWidth: captureRef.current.scrollWidth,
         windowHeight: captureRef.current.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
         onclone: (clonedDoc) => {
-          // 클론된 문서의 textarea도 조정
+          // 클론된 문서의 모든 textarea를 div로 변환
           const clonedTextareas = clonedDoc.querySelectorAll('textarea');
-          clonedTextareas.forEach((ta) => {
-            const textarea = ta as HTMLTextAreaElement;
-            textarea.style.overflow = 'hidden';
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
+          clonedTextareas.forEach((textarea) => {
+            const ta = textarea as HTMLTextAreaElement;
+            const div = clonedDoc.createElement('div');
+            
+            // textarea의 모든 스타일 복사
+            const computedStyle = window.getComputedStyle(ta);
+            div.style.cssText = ta.style.cssText;
+            div.style.whiteSpace = 'pre-wrap';
+            div.style.wordWrap = 'break-word';
+            div.style.overflow = 'hidden';
+            div.style.padding = computedStyle.padding;
+            div.style.border = computedStyle.border;
+            div.style.borderRadius = computedStyle.borderRadius;
+            div.style.backgroundColor = computedStyle.backgroundColor;
+            div.style.color = computedStyle.color;
+            div.style.fontSize = computedStyle.fontSize;
+            div.style.fontFamily = computedStyle.fontFamily;
+            div.style.lineHeight = computedStyle.lineHeight;
+            div.style.width = computedStyle.width;
+            div.style.minHeight = computedStyle.height;
+            div.className = ta.className;
+            
+            // textarea의 내용을 div에 복사 (줄바꿈 유지)
+            div.textContent = ta.value;
+            
+            // textarea를 div로 교체
+            ta.parentNode?.replaceChild(div, ta);
+          });
+
+          // 클론된 문서의 모든 input도 div로 변환
+          const clonedInputs = clonedDoc.querySelectorAll('input[type="text"]');
+          clonedInputs.forEach((input) => {
+            const inp = input as HTMLInputElement;
+            const div = clonedDoc.createElement('div');
+            
+            // input의 모든 스타일 복사
+            const computedStyle = window.getComputedStyle(inp);
+            div.style.cssText = inp.style.cssText;
+            div.style.padding = computedStyle.padding;
+            div.style.border = computedStyle.border;
+            div.style.borderRadius = computedStyle.borderRadius;
+            div.style.backgroundColor = computedStyle.backgroundColor;
+            div.style.color = computedStyle.color;
+            div.style.fontSize = computedStyle.fontSize;
+            div.style.fontFamily = computedStyle.fontFamily;
+            div.style.lineHeight = computedStyle.lineHeight;
+            div.style.width = computedStyle.width;
+            div.style.height = computedStyle.height;
+            div.style.textAlign = computedStyle.textAlign;
+            div.className = inp.className;
+            
+            // input의 내용을 div에 복사
+            div.textContent = inp.value;
+            
+            // input을 div로 교체
+            inp.parentNode?.replaceChild(div, inp);
           });
         },
-      });
-
-      // 원래 스타일 복원
-      originalStyles.forEach(({ element, overflow, height }) => {
-        (element as HTMLTextAreaElement).style.overflow = overflow;
-        (element as HTMLTextAreaElement).style.height = height;
       });
 
       // Canvas를 Blob으로 변환
