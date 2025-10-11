@@ -137,3 +137,80 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Textarea 줄바꿈 및 자동 높이 조절 */
+@layer utilities {
+  textarea {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* 이미지 캡처 시 텍스트 보존 */
+  .preserve-text {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+}
+
+/* 인쇄용 스타일 */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 인쇄 시 숨김 */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Toast/알림 메시지 숨김 - IMPORTANT! */
+  [data-sonner-toaster],
+  [data-sonner-toast],
+  .sonner,
+  [role="status"],
+  [role="alert"] {
+    display: none !important;
+  }
+
+  /* Input과 Textarea를 일반 텍스트처럼 표시 */
+  input,
+  textarea {
+    border: 1px solid #e5e7eb !important;
+    resize: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: white !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  /* 카드 스타일 유지 */
+  [class*="bg-pink-50"],
+  [class*="bg-green-50"],
+  [class*="bg-blue-50"],
+  [class*="bg-purple-50"] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 페이지 나누기 방지 */
+  .print\:break-inside-avoid {
+    page-block-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* 그라데이션 배경 유지 */
+  [class*="bg-gradient"] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
