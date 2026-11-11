@@ -33,7 +33,7 @@ export const CompassPoint = () => {
   const captureRef = useRef<HTMLDivElement>(null);
   const topicRef = useRef<HTMLTextAreaElement>(null);
 
-  // 주제 칸: 글이 길어지면 줄을 바꿔 높이가 늘어나도록
+  // 주제 칸: 글이 길어지거나 엔터로 줄을 바꾸면 높이가 늘어나도록 (2~3줄 이상 가능)
   useEffect(() => {
     const ta = topicRef.current;
     if (!ta) return;
@@ -534,10 +534,7 @@ ${directions.north || "(작성되지 않음)"}
                     ref={topicRef}
                     id="topic"
                     value={topic}
-                    onChange={(e) => setTopic(e.target.value.replace(/\n/g, " "))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.nativeEvent.isComposing) e.preventDefault();
-                    }}
+                    onChange={(e) => setTopic(e.target.value)}
                     placeholder="검토할 아이디어를 입력하세요"
                     className="min-h-[44px] resize-none overflow-hidden text-center font-medium text-base leading-normal bg-background border-2 px-3 py-2 break-words [word-break:keep-all] focus-visible:ring-2 focus-visible:ring-primary print:text-sm print:bg-white"
                     maxLength={100}
