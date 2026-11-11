@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { DirectionCard } from "./DirectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RotateCcw, Download, Save, FileText, Check, Printer, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +31,15 @@ export const CompassPoint = () => {
   });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+  const topicRef = useRef<HTMLTextAreaElement>(null);
+
+  // 주제 칸: 글이 길어지면 줄을 바꿔 높이가 늘어나도록
+  useEffect(() => {
+    const ta = topicRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = ta.scrollHeight + "px";
+  }, [topic]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -225,6 +235,12 @@ ${directions.north || "(작성되지 않음)"}
       // 약간의 지연 후 캡처 (렌더링 완료 대기)
       await new Promise(resolve => setTimeout(resolve, 300));
       
+      // Tailwind 기본 스타일(img{display:block})이 html2canvas의 글자 위치 계산을 틀어지게 해
+      // 글자가 아래로 밀려 잘리는 문제 보정 (캡처하는 동안만 적용)
+      const metricFix = document.createElement('style');
+      metricFix.textContent = 'img { display: inline !important; vertical-align: baseline; }';
+      document.head.appendChild(metricFix);
+
       // html2canvas로 캡처
       const canvas = await html2canvas(captureRef.current, {
         backgroundColor: "#ffffff",
@@ -259,7 +275,12 @@ ${directions.north || "(작성되지 않음)"}
             div.style.lineHeight = computedStyle.lineHeight;
             div.style.width = computedStyle.width;
             div.style.minHeight = computedStyle.height;
+            div.style.textAlign = computedStyle.textAlign;
+            div.style.fontWeight = computedStyle.fontWeight;
+            div.style.wordBreak = computedStyle.wordBreak;
             div.className = ta.className;
+            // shadcn Textarea의 flex 클래스 때문에 글자가 한쪽으로 몰리고 아래로 내려가는 문제 방지
+            div.style.display = 'block';
             
             // textarea의 내용을 div에 복사 (줄바꿈 유지)
             div.textContent = ta.value;
@@ -268,8 +289,8 @@ ${directions.north || "(작성되지 않음)"}
             ta.parentNode?.replaceChild(div, ta);
           });
 
-          // 클론된 문서의 모든 input도 div로 변환
-          const clonedInputs = clonedDoc.querySelectorAll('input[type="text"]');
+          // 클론된 문서의 모든 input도 div로 변환 (type 속성이 없는 input 포함)
+          const clonedInputs = clonedDoc.querySelectorAll('input:not([type]), input[type="text"]');
           clonedInputs.forEach((input) => {
             const inp = input as HTMLInputElement;
             const div = clonedDoc.createElement('div');
@@ -289,6 +310,7 @@ ${directions.north || "(작성되지 않음)"}
             div.style.height = computedStyle.height;
             div.style.textAlign = computedStyle.textAlign;
             div.className = inp.className;
+            div.style.display = 'block';
             
             // input의 내용을 div에 복사
             div.textContent = inp.value;
@@ -297,7 +319,7 @@ ${directions.north || "(작성되지 않음)"}
             inp.parentNode?.replaceChild(div, inp);
           });
         },
-      });
+      }).finally(() => metricFix.remove());
 
       // Canvas를 Blob으로 변환
       canvas.toBlob((blob) => {
@@ -508,13 +530,18 @@ ${directions.north || "(작성되지 않음)"}
                   <Label htmlFor="topic" className="block text-center font-bold text-base sm:text-lg mb-3 print:text-sm print:mb-2">
                     주제 / 아이디어
                   </Label>
-                  <Input
+                  <Textarea
+                    ref={topicRef}
                     id="topic"
                     value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
+                    onChange={(e) => setTopic(e.target.value.replace(/\n/g, " "))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.nativeEvent.isComposing) e.preventDefault();
+                    }}
                     placeholder="검토할 아이디어를 입력하세요"
-                    className="text-center font-medium text-base bg-background border-2 focus-visible:ring-2 focus-visible:ring-primary print:text-sm print:bg-white"
+                    className="min-h-[44px] resize-none overflow-hidden text-center font-medium text-base leading-normal bg-background border-2 px-3 py-2 break-words [word-break:keep-all] focus-visible:ring-2 focus-visible:ring-primary print:text-sm print:bg-white"
                     maxLength={100}
+                    rows={1}
                   />
                 </div>
               </div>
